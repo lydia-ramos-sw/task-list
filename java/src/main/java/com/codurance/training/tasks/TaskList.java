@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,9 +23,7 @@ public final class TaskList implements Runnable {
     private final BufferedReader in;
     private final PrintWriter out;
 
-    private long lastId = 0;
-
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         PrintWriter out = new PrintWriter(System.out);
         new TaskList(in, out).run();
@@ -59,38 +59,22 @@ public final class TaskList implements Runnable {
         String[] commandRest = commandLine.split(" ", 2);
         String command = commandRest[0];
         switch (command) {
-            case "show":
-                show();
-                break;
-            case "add":
-                add(commandRest[1]);
-                break;
-            case "check":
-                check(commandRest[1]);
-                break;
-            case "uncheck":
-                uncheck(commandRest[1]);
-                break;
-            case "deadline":
-                deadline(commandRest[1]);
-                break;
-            case "today":
-                today();
-                break;
-            case "help":
-                help();
-                break;
-            default:
-                error(command);
-                break;
+            case "show" -> show(tasks);
+            case "add" -> add(commandRest[1]);
+            case "check" -> check(commandRest[1]);
+            case "uncheck" -> uncheck(commandRest[1]);
+            case "deadline" -> deadline(commandRest[1]);
+            case "today" -> today();
+            case "help" -> help();
+            default -> error(command);
         }
     }
 
-    private void show() {
+    private void show(Map<String, List<Task>> tasks) {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
-                out.printf("    [%c] %s: %s%n", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                task.print(out);
             }
             out.println();
         }
@@ -108,7 +92,7 @@ public final class TaskList implements Runnable {
     }
 
     private void addProject(String name) {
-        tasks.put(name, new ArrayList<Task>());
+        tasks.put(name, new ArrayList<>());
     }
 
     private void addTask(String project, String id, String description) {
@@ -136,48 +120,35 @@ public final class TaskList implements Runnable {
     }
 
     private void setDone(String idString, boolean done) {
-        int id = Integer.parseInt(idString);
-        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
-            for (Task task : project.getValue()) {
-                if (task.getId().equals(id)) {
-                    task.setDone(done);
-                    return;
-                }
-            }
+        Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(idString);
+        Optional<Task> task = findTask(tasks, sameId);
+        if(task.isPresent()) {
+            task.get().setDone(done);
+        } else {
+            taskCouldNotBeFound(idString);
         }
-        out.printf("Could not find a task with an ID of %d.", id);
-        out.println();
     }
 
     private void deadline(String paramsLine) throws ParseException {
         String[] paramsString = paramsLine.split(" ", 2);
-        int id = Integer.parseInt(paramsString[0]);
+        Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(paramsString[0]);
         String sDateDeadline = paramsString[1];
-        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
-            for (Task task : project.getValue()) {
-                if (task.getId().equals(id)) {
-                    task.setDeadlineDate(sDateDeadline);
-                    return;
-                }
-            }
+        Optional<Task> task = findTask(tasks, sameId);
+        if(task.isPresent()) {
+            task.get().setDeadlineDate(sDateDeadline);
+        } else {
+            taskCouldNotBeFound(paramsString[0]);
         }
     }
 
     private void today() {
-        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
-            out.println(project.getKey());
-            boolean thereWereTasksDueTodayForTheProject = false;
-            for (Task task : project.getValue()) {
-                if (task.getDeadlineDate()!=null && isToday(task.getDeadlineDate())) {
-                    thereWereTasksDueTodayForTheProject = true;
-                    out.printf("    [%c] %s: %s%n", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
-                }
-            }
-            if (!thereWereTasksDueTodayForTheProject) {
-                out.printf("No tasks due today for this project");
-            }
-            out.println();
+        Predicate<Task> deadlineToday = t -> t.getDeadlineDate()!=null && isToday(t.getDeadlineDate());
+        Map<String, List<Task>> tasksDeadlineToday = findTasks(tasks, deadlineToday);
+        if (tasksDeadlineToday.isEmpty()){
+            out.println("No tasks with deadline today");
+            return;
         }
+        show(tasksDeadlineToday);
     }
 
     public boolean isToday(Date date){
@@ -198,6 +169,7 @@ public final class TaskList implements Runnable {
         out.println("  uncheck <task ID>");
         out.println("  deadline <task ID> <dd/MM/yyyy>");
         out.println("  today");
+        out.println("  quit");
         out.println();
     }
 
@@ -206,7 +178,27 @@ public final class TaskList implements Runnable {
         out.println();
     }
 
-    private long nextId() {
-        return ++lastId;
+    private Optional<Task> findTask(Map<String, List<Task>> tasks, Predicate<Task> p){
+        Optional<Task> task = Optional.empty();
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            task = project.getValue().stream().filter(p).findAny();
+            if(task.isPresent()) {
+                break;
+            }
+        }
+        return task;
+    }
+
+    private Map<String, List<Task>> findTasks(Map<String, List<Task>> tasks, Predicate<Task> p){
+        Map<String, List<Task>> filteredTasks =  new LinkedHashMap<>();
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            filteredTasks.put(project.getKey(), project.getValue().stream().filter(p).toList());
+        }
+        return filteredTasks;
+    }
+
+    private void taskCouldNotBeFound(String taskId){
+        out.printf("Could not find a task with an ID of %s.", taskId);
+        out.println();
     }
 }

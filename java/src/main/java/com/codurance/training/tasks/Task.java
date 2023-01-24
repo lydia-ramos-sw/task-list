@@ -1,5 +1,6 @@
 package main.java.com.codurance.training.tasks;
 
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,5 +39,9 @@ public final class Task {
 
     public void setDeadlineDate(String sDeadlineDate) throws ParseException {
         this.deadlineDate =new SimpleDateFormat("dd/MM/yyyy").parse(sDeadlineDate);
+    }
+
+    public void print(PrintWriter writer) {
+        writer.printf("    [%c] %s: %s%n", (this.isDone() ? 'x' : ' '), this.getId(), this.getDescription());
     }
 }
