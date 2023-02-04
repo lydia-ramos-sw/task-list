@@ -1,11 +1,13 @@
 package main.java.com.codurance.training.tasks;
 
+import main.java.com.codurance.training.tasks.command.Command;
+import main.java.com.codurance.training.tasks.command.CommandFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -13,13 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class TaskList implements Runnable {
     private static final String QUIT = "quit";
 
-    private final Map<String, List<Task>> tasks = new LinkedHashMap<>();
+    final Map<String, List<Task>> tasks = new LinkedHashMap<>();
     private final BufferedReader in;
     private final PrintWriter out;
 
@@ -36,23 +36,29 @@ public final class TaskList implements Runnable {
 
     public void run() {
         while (true) {
-            out.print("> ");
-            out.flush();
+            printFlush(out);
             String command;
             try {
                 command = in.readLine();
+                processCommand(command);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             if (command.equals(QUIT)) {
                 break;
             }
-            try {
-                execute(command);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
         }
+    }
+
+    private void processCommand(String commandLine) {
+        String[] commandRest = commandLine.split(" ");
+        Command c = CommandFactory.fromName(commandRest[0]).get();
+        c.execute(commandRest);
+    }
+
+    private void printFlush(PrintWriter out){
+        out.print("> ");
+        out.flush();
     }
 
     private void execute(String commandLine) throws ParseException {
@@ -81,35 +87,10 @@ public final class TaskList implements Runnable {
     }
 
     private void add(String commandLine) {
-        String[] subcommandRest = commandLine.split(" ", 2);
-        String subcommand = subcommandRest[0];
-        if (subcommand.equals("project")) {
-            addProject(subcommandRest[1]);
-        } else if (subcommand.equals("task")) {
-            String[] projectTask = subcommandRest[1].split(" ", 3);
-            addTask(projectTask[0], projectTask[1], projectTask[2]);
-        }
+
     }
 
-    private void addProject(String name) {
-        tasks.put(name, new ArrayList<>());
-    }
 
-    private void addTask(String project, String id, String description) {
-        List<Task> projectTasks = tasks.get(project);
-        if (projectTasks == null) {
-            out.printf("Could not find a project with the name \"%s\".", project);
-            out.println();
-            return;
-        }
-        Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
-        Matcher m = p.matcher(id);
-        boolean idContainsSpecialCharacters = m.find();
-        if (idContainsSpecialCharacters) {
-            out.println("Could not create the task because the id contains special characters");
-        }
-        projectTasks.add(new Task(id, description, false));
-    }
 
     private void check(String idString) {
         setDone(idString, true);
