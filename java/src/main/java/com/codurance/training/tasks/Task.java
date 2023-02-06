@@ -3,7 +3,6 @@ package main.java.com.codurance.training.tasks;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,7 +25,7 @@ public final class Task {
         this.deadlineDate =new SimpleDateFormat("dd/MM/yyyy").parse(sDeadlineDate);
     }
 
-    public void print(PrintWriter writer) {
-        writer.printf("    [%c] %s: %s%n", (this.isDone() ? 'x' : ' '), this.getId(), this.getDescription());
+    public void print() {
+        System.out.printf("    [%c] %s: %s%n", (this.isDone() ? 'x' : ' '), this.getId(), this.getDescription());
     }
 }

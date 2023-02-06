@@ -5,7 +5,13 @@ import java.util.function.Supplier;
 
 public enum CommandFactory implements Supplier<Command>{
     ADD("add", Add::new),
-    CHECK("check", Check::new);
+    CHECK("check", Check::new),
+    UNCHECK("uncheck", Uncheck::new),
+    DEADLINE("deadline", Deadline::new),
+    TODAY("today", Today::new),
+    HELP("help", Help::new),
+    ERROR("error",ErrorCommand::new),
+    SHOW("show", Show::new);
 
     private static final CommandFactory[] VALUES = values();
     private final String name;
@@ -21,7 +27,7 @@ public enum CommandFactory implements Supplier<Command>{
         return Arrays.stream(VALUES)
                 .filter(v -> v.name.equals(name))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid command " + name + "."));
+                .orElse(CommandFactory.ERROR);
     }
 
     @Override

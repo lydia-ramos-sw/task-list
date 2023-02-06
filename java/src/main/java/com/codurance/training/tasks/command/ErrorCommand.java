@@ -1,14 +1,14 @@
 package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
-import main.java.com.codurance.training.tasks.TaskUtils;
 
 import java.util.List;
 import java.util.Map;
 
-public class Show extends Command{
+public class ErrorCommand extends Command{
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks) {
-        TaskUtils.show(tasks);
+        System.out.printf("I don't know what the command \"%s\" is.", arguments[0]);
+        System.out.println();
     }
 }
