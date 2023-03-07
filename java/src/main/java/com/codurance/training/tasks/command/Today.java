@@ -7,15 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class Today extends Command{
+public class Today extends Command implements Arguments{
+
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks) {
-        Predicate<Task> deadlineToday = t -> t.getDeadlineDate()!=null && TaskUtils.isToday(t.getDeadlineDate());
+        boolean argumentSettingWentOk = setArguments(arguments);
+        if (argumentSettingWentOk) {
+            today(tasks);
+        }
+    }
+
+    void today(Map<String, List<Task>> tasks) {
+        Predicate<Task> deadlineToday = t -> t.getDeadlineDate() != null && TaskUtils.isToday(t.getDeadlineDate());
         Map<String, List<Task>> tasksDeadlineToday = TaskUtils.findTasks(tasks, deadlineToday);
-        if (tasksDeadlineToday.isEmpty()){
+        if (tasksDeadlineToday.isEmpty()) {
             System.out.println("No tasks with deadline today");
             return;
         }
         TaskUtils.show(tasksDeadlineToday);
+    }
+
+    public static void help() {
+        System.out.println("  today");
     }
 }

@@ -6,12 +6,11 @@ import main.java.com.codurance.training.tasks.command.CommandFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class TaskList implements Runnable {
+public final class TaskList implements Runnable{
     private static final String QUIT = "quit";
 
     final Map<String, List<Task>> tasks = new LinkedHashMap<>();
@@ -19,7 +18,7 @@ public final class TaskList implements Runnable {
 
     public static void main(String[] args) {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        PrintWriter out = new PrintWriter(System.out);
+
         new TaskList(in).run();
     }
 

@@ -1,33 +1,31 @@
 package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
+import main.java.com.codurance.training.tasks.TaskUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-public class Deadline extends Command implements Arguments{
+public class Delete extends Command implements Arguments{
 
     String taskId;
-    String deadline;
-    Date deadlineDate;
 
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks) {
         boolean argumentSettingWentOk = setArguments(arguments);
         if (argumentSettingWentOk) {
-            deadline(tasks, arguments[2]);
+            removeTask(tasks);
         }
     }
 
-    void deadline(Map<String, List<Task>> tasks, String sDateDeadline) {
+    void removeTask(Map<String, List<Task>> tasks) {
         Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, "task", taskId);
         if (task.isPresent()) {
-            task.get().setDeadlineDate(deadlineDate);
+            Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(taskId);
+            TaskUtils.removeTask(tasks, sameId);
         }
     }
 
@@ -36,11 +34,7 @@ public class Deadline extends Command implements Arguments{
         ArrayList<String> validationsErrors = new ArrayList<>();
         if (validateAmountOfArguments(arguments, validationsErrors) & validateArgumentsCorrectness(arguments, validationsErrors)) {
             taskId = arguments[1];
-            deadline = arguments[2];
-            try {
-                deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadline);
-            } catch (ParseException e) {
-            }
+            return true;
         }
         System.out.println(validationsErrors.stream().toList());
         Deadline.help();
@@ -51,7 +45,6 @@ public class Deadline extends Command implements Arguments{
     public boolean validateArgumentsCorrectness(String[] arguments, ArrayList<String> validationsErrors) {
         boolean argumentsCorrectness = true;
         argumentsCorrectness = ArgumentsValidator.validateString(arguments[1], validationsErrors, "taskId");
-        argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateDate(arguments[2], validationsErrors, "deadline");
         return argumentsCorrectness;
     }
 
@@ -61,6 +54,6 @@ public class Deadline extends Command implements Arguments{
     }
 
     public static void help() {
-        System.out.println("  deadline <task ID> <dd/MM/yyyy>");
+        System.out.println("  delete <task ID>");
     }
 }

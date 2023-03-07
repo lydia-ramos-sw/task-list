@@ -6,9 +6,16 @@ import main.java.com.codurance.training.tasks.TaskUtils;
 import java.util.List;
 import java.util.Map;
 
-public class Show extends Command{
+public class Show extends Command implements Arguments{
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks) {
-        TaskUtils.show(tasks);
+        boolean argumentSettingWentOk = setArguments(arguments);
+        if (argumentSettingWentOk) {
+            TaskUtils.show(tasks);
+        }
+    }
+
+    public static void help() {
+        System.out.println("  show");
     }
 }

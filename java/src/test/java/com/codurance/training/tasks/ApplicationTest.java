@@ -112,6 +112,22 @@ public final class ApplicationTest {
         );
         execute("add task training id& wrongTaskOnPurpose");
         readLines("Could not create the task because the id contains special characters");
+        /*
+        execute("delete id2");
+        execute("show");
+        readLines(
+                "secrets",
+                "    [x] id1: Eat more donuts.",
+                "",
+                "training",
+                "    [x] id3: Four Elements of Simple Design",
+                "    [ ] id4: SOLID",
+                "    [x] id5: Coupling and Cohesion",
+                "    [x] id6: Primitive Obsession",
+                "    [ ] id7: Outside-In TDD",
+                "    [ ] id8: Interaction-Driven Design",
+                ""
+        );*/
         execute("quit");
     }
 

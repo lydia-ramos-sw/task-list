@@ -10,8 +10,9 @@ public enum CommandFactory implements Supplier<Command>{
     DEADLINE("deadline", Deadline::new),
     TODAY("today", Today::new),
     HELP("help", Help::new),
-    ERROR("error",ErrorCommand::new),
-    SHOW("show", Show::new);
+    ERROR("error", ErrorCommand::new),
+    SHOW("show", Show::new),
+    DELETE("delete", Delete::new);
 
     private static final CommandFactory[] VALUES = values();
     private final String name;
