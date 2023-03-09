@@ -29,7 +29,7 @@ public final class ApplicationTest {
     public ApplicationTest() throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(new PipedInputStream(inStream)));
         PrintWriter out = new PrintWriter(new PipedOutputStream(outStream), true);
-        TaskList taskList = new TaskList(in);
+        TaskList taskList = new TaskList(in, out);
         applicationThread = new Thread(taskList);
     }
 
@@ -98,8 +98,8 @@ public final class ApplicationTest {
                 ""
         );
 
-        execute("deadline id2 27/01/2023");
-        execute("deadline id4 27/01/2023");
+        execute("deadline id2 09/03/2023");
+        execute("deadline id4 09/03/2023");
         execute("deadline id6 26/01/2023");
         execute("today");
         readLines(
@@ -111,8 +111,9 @@ public final class ApplicationTest {
                 ""
         );
         execute("add task training id& wrongTaskOnPurpose");
-        readLines("Could not create the task because the id contains special characters");
-        /*
+        readLines("[Could not create the task because the id contains special characters]");
+        readLines("  add project <project name>");
+        readLines("  add task <task ID> <project name> <task description>");
         execute("delete id2");
         execute("show");
         readLines(
@@ -127,7 +128,7 @@ public final class ApplicationTest {
                 "    [ ] id7: Outside-In TDD",
                 "    [ ] id8: Interaction-Driven Design",
                 ""
-        );*/
+        );
         execute("quit");
     }
 

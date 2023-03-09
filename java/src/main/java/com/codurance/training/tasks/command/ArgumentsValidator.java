@@ -21,6 +21,13 @@ public class ArgumentsValidator{
         }
         return true;
     }
+    public static boolean validateArgumentsAmountOrMore(String[] arguments, ArrayList<String> validationsErrors, int n) {
+        if (arguments.length < n) {
+            validationsErrors.add("Arguments should be " + n + "and there are only " + arguments.length);
+            return false;
+        }
+        return true;
+    }
 
     public static boolean validateItemToAdd(String argument, ArrayList<String> validationsErrors, String itemLabel) {
         if (argument != null &&
@@ -51,13 +58,12 @@ public class ArgumentsValidator{
         return true;
     }
 
-    public static boolean validateStringWithoutSpecialCharacters(String argument, ArrayList<String> validationsErrors,
-                                                                 String itemLabel) {
+    public static boolean validateTaskIdWithoutSpecialCharacters(String argument, ArrayList<String> validationsErrors) {
         Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(argument);
         boolean specialCharacters = m.find();
         if (specialCharacters) {
-            validationsErrors.add(itemLabel + " contains special characters");
+            validationsErrors.add("Could not create the task because the id contains special characters");
             return false;
         } else {
             return true;

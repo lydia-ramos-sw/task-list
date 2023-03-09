@@ -1,5 +1,6 @@
 package main.java.com.codurance.training.tasks;
 
+import java.io.PrintWriter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -49,18 +50,18 @@ public class TaskUtils{
                 && today.get(Calendar.YEAR) == specifiedDate.get(Calendar.YEAR);
     }
 
-    public static void show(Map<String, List<Task>> tasks) {
+    public static void show(Map<String, List<Task>> tasks, PrintWriter out) {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
-            System.out.println(project.getKey());
+            out.println(project.getKey());
             for (Task task : project.getValue()) {
-                task.print();
+                task.print(out);
             }
-            System.out.println();
+            out.println();
         }
     }
 
-    public static void printFlush() {
-        System.out.print("> ");
-        System.out.flush();
+    public static void printFlush(PrintWriter out) {
+        out.print("> ");
+        out.flush();
     }
 }

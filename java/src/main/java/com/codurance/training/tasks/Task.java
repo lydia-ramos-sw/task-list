@@ -3,6 +3,7 @@ package main.java.com.codurance.training.tasks;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.PrintWriter;
 import java.util.Date;
 
 @Getter
@@ -20,7 +21,7 @@ public final class Task{
         this.done = done;
     }
 
-    public void print() {
-        System.out.printf("    [%c] %s: %s%n", (this.isDone() ? 'x' : ' '), this.getId(), this.getDescription());
+    public void print(PrintWriter out) {
+        out.printf("    [%c] %s: %s%n", (this.isDone() ? 'x' : ' '), this.getId(), this.getDescription());
     }
 }

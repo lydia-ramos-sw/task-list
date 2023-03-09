@@ -3,6 +3,7 @@ package main.java.com.codurance.training.tasks.command;
 import main.java.com.codurance.training.tasks.Task;
 import main.java.com.codurance.training.tasks.TaskUtils;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,8 @@ public class Delete extends Command implements Arguments{
     String taskId;
 
     @Override
-    public void execute(String[] arguments, Map<String, List<Task>> tasks) {
+    public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
+        this.out = out;
         boolean argumentSettingWentOk = setArguments(arguments);
         if (argumentSettingWentOk) {
             removeTask(tasks);
@@ -22,7 +24,7 @@ public class Delete extends Command implements Arguments{
     }
 
     void removeTask(Map<String, List<Task>> tasks) {
-        Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, "task", taskId);
+        Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, taskId, "task" );
         if (task.isPresent()) {
             Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(taskId);
             TaskUtils.removeTask(tasks, sameId);
@@ -36,8 +38,8 @@ public class Delete extends Command implements Arguments{
             taskId = arguments[1];
             return true;
         }
-        System.out.println(validationsErrors.stream().toList());
-        Deadline.help();
+        this.out.println(validationsErrors.stream().toList());
+        Deadline.help(this.out);
         return false;
     }
 
@@ -50,10 +52,10 @@ public class Delete extends Command implements Arguments{
 
     @Override
     public boolean validateAmountOfArguments(String[] arguments, ArrayList<String> validationsErrors) {
-        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 1);
+        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 2);
     }
 
-    public static void help() {
-        System.out.println("  delete <task ID>");
+    public static void help(PrintWriter out) {
+        out.println("  delete <task ID>");
     }
 }

@@ -2,6 +2,7 @@ package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
 
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,7 +18,8 @@ public class Deadline extends Command implements Arguments{
     Date deadlineDate;
 
     @Override
-    public void execute(String[] arguments, Map<String, List<Task>> tasks) {
+    public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
+        this.out = out;
         boolean argumentSettingWentOk = setArguments(arguments);
         if (argumentSettingWentOk) {
             deadline(tasks, arguments[2]);
@@ -25,7 +27,7 @@ public class Deadline extends Command implements Arguments{
     }
 
     void deadline(Map<String, List<Task>> tasks, String sDateDeadline) {
-        Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, "task", taskId);
+        Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, taskId, "task");
         if (task.isPresent()) {
             task.get().setDeadlineDate(deadlineDate);
         }
@@ -41,9 +43,10 @@ public class Deadline extends Command implements Arguments{
                 deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadline);
             } catch (ParseException e) {
             }
+            return true;
         }
-        System.out.println(validationsErrors.stream().toList());
-        Deadline.help();
+        this.out.println(validationsErrors.stream().toList());
+        Deadline.help(this.out);
         return false;
     }
 
@@ -57,10 +60,10 @@ public class Deadline extends Command implements Arguments{
 
     @Override
     public boolean validateAmountOfArguments(String[] arguments, ArrayList<String> validationsErrors) {
-        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 1);
+        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 3);
     }
 
-    public static void help() {
-        System.out.println("  deadline <task ID> <dd/MM/yyyy>");
+    public static void help(PrintWriter out) {
+        out.println("  deadline <task ID> <dd/MM/yyyy>");
     }
 }

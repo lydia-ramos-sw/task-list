@@ -2,6 +2,7 @@ package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,8 @@ public class Add extends Command implements Arguments{
 
 
     @Override
-    public void execute(String[] arguments, Map<String, List<Task>> tasks) {
+    public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
+        this.out = out;
         boolean argumentSettingWentOk = setArguments(arguments);
         if (argumentSettingWentOk) {
             if (itemToAdd.equals("project")) {
@@ -32,13 +34,17 @@ public class Add extends Command implements Arguments{
             itemToAdd = arguments[1];
             project = arguments[2];
             if (arguments[1].equals("task")) {
-                taskId = arguments[4];
-                task = arguments[3];
+                taskId = arguments[3];
+                task = "";
+                for (int i=4; i<arguments.length; i++){
+                    task += arguments[i]+" ";
+                }
+                task = task.trim();
             }
             return true;
         }
-        System.out.println(validationsErrors.stream().toList());
-        Add.help();
+        this.out.println(validationsErrors.stream().toList());
+        Add.help(this.out);
         return false;
     }
 
@@ -47,7 +53,7 @@ public class Add extends Command implements Arguments{
         argumentsCorrectness = ArgumentsValidator.validateItemToAdd(arguments[1], validationsErrors, "itemToAdd");
         argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateString(arguments[2], validationsErrors, "project");
         if (arguments[1].equals("task")) {
-            argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateStringWithoutSpecialCharacters(arguments[3], validationsErrors, "taskId");
+            argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateTaskIdWithoutSpecialCharacters(arguments[3], validationsErrors);
             argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateString(arguments[4], validationsErrors, "task");
         }
         return argumentsCorrectness;
@@ -58,16 +64,16 @@ public class Add extends Command implements Arguments{
         if (arguments[1].equals("project")) {
             correctAmountOfArguments = ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 3);
         } else if (arguments[1].equals("task")) {
-            correctAmountOfArguments = ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 5);
+            correctAmountOfArguments = ArgumentsValidator.validateArgumentsAmountOrMore(arguments, validationsErrors, 5);
         } else {
             correctAmountOfArguments = false;
         }
         return correctAmountOfArguments;
     }
 
-    public static void help() {
-        System.out.println("  add project <project name>");
-        System.out.println("  add task <task ID> <project name> <task description>");
+    public static void help(PrintWriter out) {
+        out.println("  add project <project name>");
+        out.println("  add task <task ID> <project name> <task description>");
     }
 
     private void addProject(Map<String, List<Task>> tasks, String name) {
