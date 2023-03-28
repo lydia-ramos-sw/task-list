@@ -1,28 +1,23 @@
 package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
+import main.java.com.codurance.training.tasks.exceptions.ValidationException;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Uncheck extends Check implements Arguments{
-    public void execute(String[] arguments, Map<String, List<Task>> tasks) {
-        this.out = out;
-        setDone(tasks, arguments[1], false);
-    }
-
+public class Uncheck extends Check{
     @Override
-    public boolean setArguments(String[] arguments) {
-        ArrayList<String> validationsErrors = new ArrayList<>();
-        if (validateAmountOfArguments(arguments, validationsErrors) & validateArgumentsCorrectness(arguments, validationsErrors)) {
-            taskId = arguments[1];
-            return true;
+    public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
+        this.out = out;
+        try {
+        setArguments(arguments);
+        setDone(tasks, arguments[1], false);
+        } catch (ValidationException ve) {
+            out.println(ve.getMessage());
+            Uncheck.help(out);
         }
-        this.out.println(validationsErrors.stream().toList());
-        Uncheck.help(this.out);
-        return false;
     }
 
     public static void help(PrintWriter out) {

@@ -2,10 +2,10 @@ package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
 import main.java.com.codurance.training.tasks.TaskUtils;
+import main.java.com.codurance.training.tasks.exceptions.ValidationException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,77 +14,74 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ArgumentsValidator{
-    public static boolean validateArgumentsAmount(String[] arguments, ArrayList<String> validationsErrors, int n) {
+    public static void validateArgumentsAmount(String[] arguments, int n) throws ValidationException {
         if (arguments.length != n) {
-            validationsErrors.add("Arguments should be " + n + "and there are only " + arguments.length);
-            return false;
+            throw new ValidationException("Arguments should be " + n + "and there are " + arguments.length);
         }
-        return true;
     }
-    public static boolean validateArgumentsAmountOrMore(String[] arguments, ArrayList<String> validationsErrors, int n) {
+    public static void validateArgumentsAmountOrMore(String[] arguments, int n) throws ValidationException {
         if (arguments.length < n) {
-            validationsErrors.add("Arguments should be " + n + "and there are only " + arguments.length);
-            return false;
+            throw new ValidationException("Arguments should be " + n + "and there are only " + arguments.length);
         }
-        return true;
     }
 
-    public static boolean validateItemToAdd(String argument, ArrayList<String> validationsErrors, String itemLabel) {
-        if (argument != null &&
+    public static void validateItemToAdd(String argument, String itemLabel) throws ValidationException {
+        if (!(argument != null &&
                 (argument.equalsIgnoreCase("project")
-                        || argument.equalsIgnoreCase("task"))) {
-            return true;
+                        || argument.equalsIgnoreCase("task")))) {
+            throw new ValidationException(itemLabel + " should have as a value 'project or task' and its value is " + argument);
         }
-        validationsErrors.add(itemLabel + " should have as a value 'project or task' and its value is " + argument);
-        return false;
     }
 
-    public static boolean validateString(String argument, ArrayList<String> validationsErrors, String itemLabel) {
-        if (argument != null &&
-                !argument.isEmpty()) {
-            return true;
+    public static void validateString(String argument, String itemLabel) throws ValidationException {
+        if (argument == null ||
+                argument.isEmpty()) {
+            throw new ValidationException(itemLabel + " is null or empty");
         }
-        validationsErrors.add(itemLabel + " is null or empty");
-        return false;
     }
 
-    public static boolean validateDate(String argument, ArrayList<String> validationsErrors, String itemLabel) {
+    public static void validateDate(String argument, String itemLabel) throws ValidationException {
         try {
             new SimpleDateFormat("dd/MM/yyyy").parse(argument);
         } catch (ParseException e) {
-            validationsErrors.add(argument + " with cannot be used as " + itemLabel);
-            return false;
+            throw new ValidationException(argument + " with cannot be used as " + itemLabel);
         }
-        return true;
     }
 
-    public static boolean validateTaskIdWithoutSpecialCharacters(String argument, ArrayList<String> validationsErrors) {
+    public static void validateTaskIdWithoutSpecialCharacters(String argument) throws ValidationException {
         Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
         Matcher m = p.matcher(argument);
         boolean specialCharacters = m.find();
         if (specialCharacters) {
-            validationsErrors.add("Could not create the task because the id contains special characters");
-            return false;
-        } else {
-            return true;
+            throw new ValidationException("Could not create the task because the id contains special characters");
         }
     }
 
     public static List<Task> validateProjectExists(Map<String, List<Task>> tasks, String argument,
-                                                   String itemLabel) {
+                                                   String itemLabel) throws ValidationException {
         List<Task> projectTasks = tasks.get(argument);
         if (projectTasks == null) {
-            System.out.println("Could not find a " + itemLabel + " with the name " + argument + ". Please create the project before using it.");
+            throw new ValidationException("Could not find a " + itemLabel + " with the name " + argument + ". Please create the project before using it.");
         }
         return projectTasks;
     }
 
     public static Optional<Task> validateTaskExists(Map<String, List<Task>> tasks, String argument,
-                                                    String itemLabel) {
+                                                    String itemLabel) throws ValidationException {
         Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(argument);
         Optional<Task> task = TaskUtils.findTask(tasks, sameId);
         if (!task.isPresent()) {
-            System.out.println("Could not find a " + itemLabel + " with the id " + argument + ".");
+            throw new ValidationException("Could not find a " + itemLabel + " with the id " + argument + ".");
+        }
+        return task;
+    }
+
+    public static Optional<Task> validateTaskDoesNotExist(Map<String, List<Task>> tasks, String argument,
+                                                    String itemLabel) throws ValidationException {
+        Predicate<Task> sameId = t -> t.getId().equalsIgnoreCase(argument);
+        Optional<Task> task = TaskUtils.findTask(tasks, sameId);
+        if (task.isPresent()) {
+            throw new ValidationException("A " + itemLabel + " already exists, with the id " + argument + ".");
         }
         return task;
     }

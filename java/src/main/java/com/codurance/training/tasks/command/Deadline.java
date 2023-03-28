@@ -1,17 +1,17 @@
 package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
+import main.java.com.codurance.training.tasks.exceptions.ValidationException;
 
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class Deadline extends Command implements Arguments{
+public class Deadline extends CommandWithArguments{
 
     String taskId;
     String deadline;
@@ -20,13 +20,16 @@ public class Deadline extends Command implements Arguments{
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
         this.out = out;
-        boolean argumentSettingWentOk = setArguments(arguments);
-        if (argumentSettingWentOk) {
+        try {
+            setArguments(arguments);
             deadline(tasks, arguments[2]);
+        } catch (ValidationException ve) {
+            out.println(ve.getMessage());
+            Deadline.help(out);
         }
     }
 
-    void deadline(Map<String, List<Task>> tasks, String sDateDeadline) {
+    void deadline(Map<String, List<Task>> tasks, String sDateDeadline) throws ValidationException {
         Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, taskId, "task");
         if (task.isPresent()) {
             task.get().setDeadlineDate(deadlineDate);
@@ -34,33 +37,26 @@ public class Deadline extends Command implements Arguments{
     }
 
     @Override
-    public boolean setArguments(String[] arguments) {
-        ArrayList<String> validationsErrors = new ArrayList<>();
-        if (validateAmountOfArguments(arguments, validationsErrors) & validateArgumentsCorrectness(arguments, validationsErrors)) {
-            taskId = arguments[1];
-            deadline = arguments[2];
-            try {
-                deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadline);
-            } catch (ParseException e) {
-            }
-            return true;
+    public void setArguments(String[] arguments) throws ValidationException {
+        validateAmountOfArguments(arguments);
+        validateArgumentsCorrectness(arguments);
+        taskId = arguments[1];
+        deadline = arguments[2];
+        try {
+            deadlineDate = new SimpleDateFormat("dd/MM/yyyy").parse(deadline);
+        } catch (ParseException e) {
         }
-        this.out.println(validationsErrors.stream().toList());
-        Deadline.help(this.out);
-        return false;
     }
 
     @Override
-    public boolean validateArgumentsCorrectness(String[] arguments, ArrayList<String> validationsErrors) {
-        boolean argumentsCorrectness = true;
-        argumentsCorrectness = ArgumentsValidator.validateString(arguments[1], validationsErrors, "taskId");
-        argumentsCorrectness = argumentsCorrectness && ArgumentsValidator.validateDate(arguments[2], validationsErrors, "deadline");
-        return argumentsCorrectness;
+    public void validateArgumentsCorrectness(String[] arguments) throws ValidationException {
+        ArgumentsValidator.validateString(arguments[1], "taskId");
+        ArgumentsValidator.validateDate(arguments[2], "deadline");
     }
 
     @Override
-    public boolean validateAmountOfArguments(String[] arguments, ArrayList<String> validationsErrors) {
-        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 3);
+    public void validateAmountOfArguments(String[] arguments) throws ValidationException {
+        ArgumentsValidator.validateArgumentsAmount(arguments, 3);
     }
 
     public static void help(PrintWriter out) {

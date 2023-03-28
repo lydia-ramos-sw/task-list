@@ -8,15 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class Today extends Command implements Arguments{
+public class Today extends Command {
 
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
         this.out = out;
-        boolean argumentSettingWentOk = setArguments(arguments);
-        if (argumentSettingWentOk) {
-            today(tasks);
-        }
+        today(tasks);
     }
 
     void today(Map<String, List<Task>> tasks) {

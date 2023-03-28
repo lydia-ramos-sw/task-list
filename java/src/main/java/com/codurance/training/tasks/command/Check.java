@@ -1,51 +1,47 @@
 package main.java.com.codurance.training.tasks.command;
 
 import main.java.com.codurance.training.tasks.Task;
+import main.java.com.codurance.training.tasks.exceptions.ValidationException;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class Check extends Command implements Arguments{
+public class Check extends CommandWithArguments{
 
     String taskId;
 
     @Override
     public void execute(String[] arguments, Map<String, List<Task>> tasks, PrintWriter out) {
         this.out = out;
-        boolean argumentSettingWentOk = setArguments(arguments);
-        if (argumentSettingWentOk) {
+        try {
+            setArguments(arguments);
             setDone(tasks, arguments[1], true);
+        } catch (ValidationException ve) {
+            out.println(ve.getMessage());
+            Check.help(out);
         }
     }
 
     @Override
-    public boolean setArguments(String[] arguments) {
-        ArrayList<String> validationsErrors = new ArrayList<>();
-        if (validateAmountOfArguments(arguments, validationsErrors) & validateArgumentsCorrectness(arguments, validationsErrors)) {
-            taskId = arguments[1];
-            return true;
-        }
-        this.out.println(validationsErrors.stream().toList());
-        Check.help(this.out);
-        return false;
+    public void setArguments(String[] arguments) throws ValidationException {
+        validateAmountOfArguments(arguments);
+        validateArgumentsCorrectness(arguments);
+        taskId = arguments[1];
     }
 
     @Override
-    public boolean validateArgumentsCorrectness(String[] arguments, ArrayList<String> validationsErrors) {
-        boolean argumentsCorrectness = true;
-        argumentsCorrectness = ArgumentsValidator.validateString(arguments[1], validationsErrors, "taskId");
-        return argumentsCorrectness;
+    public void validateArgumentsCorrectness(String[] arguments) throws ValidationException {
+        ArgumentsValidator.validateString(arguments[1], "taskId");
     }
 
     @Override
-    public boolean validateAmountOfArguments(String[] arguments, ArrayList<String> validationsErrors) {
-        return ArgumentsValidator.validateArgumentsAmount(arguments, validationsErrors, 2);
+    public void validateAmountOfArguments(String[] arguments) throws ValidationException {
+        ArgumentsValidator.validateArgumentsAmount(arguments, 2);
     }
 
-    void setDone(Map<String, List<Task>> tasks, String idString, boolean done) {
+    void setDone(Map<String, List<Task>> tasks, String idString, boolean done) throws ValidationException {
         Optional<Task> task = ArgumentsValidator.validateTaskExists(tasks, idString, "task");
         if (task.isPresent()) {
             task.get().setDone(done);
